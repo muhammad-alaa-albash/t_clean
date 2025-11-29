@@ -1,145 +1,145 @@
-import { NextRequest } from "next/server";
+// import { NextRequest } from "next/server";
 
-import { prisma } from "@/lib/prisma";
-import { authenticateRequest } from "@/lib/auth";
-import { successResponse, errorResponse } from "@/lib/api-response";
-import { serviceUpdateSchema } from "@/lib/validation/services";
+// import { prisma } from "@/lib/prisma";
+// import { authenticateRequest } from "@/lib/auth";
+// import { successResponse, errorResponse } from "@/lib/api-response";
+// import { serviceUpdateSchema } from "@/lib/validation/services";
 
-// interface RouteContext {
-//   params: {
-//     id: string;
-//   };
+// // interface RouteContext {
+// //   params: {
+// //     id: string;
+// //   };
+// // }
+
+// export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+//   const id = Number(params.id);
+
+//   if (!Number.isInteger(id) || id <= 0) {
+//     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
+//   }
+
+//   const service = await prisma.service.findFirst({
+//     where: {
+//       id,
+//       isDeleted: false,
+//     },
+//     select: {
+//       id: true,
+//       name: true,
+//       description: true,
+//       price: true,
+//       companyId: true,
+//       createdAt: true,
+//       updatedAt: true,
+//     },
+//   });
+
+//   if (!service) {
+//     return errorResponse(404, "Service not found", "NOT_FOUND");
+//   }
+
+//   return successResponse("Service fetched successfully", { service });
 // }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+// export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+//   const authResult = await authenticateRequest(req, { requireAdmin: true });
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
-  }
+//   if ("error" in authResult) {
+//     return authResult.error;
+//   }
 
-  const service = await prisma.service.findFirst({
-    where: {
-      id,
-      isDeleted: false,
-    },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      price: true,
-      companyId: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+//   const id = Number(params.id);
 
-  if (!service) {
-    return errorResponse(404, "Service not found", "NOT_FOUND");
-  }
+//   if (!Number.isInteger(id) || id <= 0) {
+//     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
+//   }
 
-  return successResponse("Service fetched successfully", { service });
-}
+//   const json = await req.json();
+//   const parseResult = serviceUpdateSchema.safeParse(json);
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const authResult = await authenticateRequest(req, { requireAdmin: true });
+//   if (!parseResult.success) {
+//     return errorResponse(
+//       400,
+//       "Validation error",
+//       "VALIDATION_ERROR",
+//       parseResult.error.format()
+//     );
+//   }
 
-  if ("error" in authResult) {
-    return authResult.error;
-  }
+//   const existing = await prisma.service.findFirst({
+//     where: {
+//       id,
+//       isDeleted: false,
+//     },
+//   });
 
-  const id = Number(params.id);
+//   if (!existing) {
+//     return errorResponse(404, "Service not found", "NOT_FOUND");
+//   }
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
-  }
+//   if (parseResult.data.companyId) {
+//     const company = await prisma.company.findFirst({
+//       where: {
+//         id: parseResult.data.companyId,
+//         isDeleted: false,
+//       },
+//     });
 
-  const json = await req.json();
-  const parseResult = serviceUpdateSchema.safeParse(json);
+//     if (!company) {
+//       return errorResponse(400, "Invalid companyId", "VALIDATION_ERROR");
+//     }
+//   }
 
-  if (!parseResult.success) {
-    return errorResponse(
-      400,
-      "Validation error",
-      "VALIDATION_ERROR",
-      parseResult.error.format()
-    );
-  }
+//   const updated = await prisma.service.update({
+//     where: { id },
+//     data: parseResult.data,
+//     select: {
+//       id: true,
+//       name: true,
+//       description: true,
+//       price: true,
+//       companyId: true,
+//       createdAt: true,
+//       updatedAt: true,
+//     },
+//   });
 
-  const existing = await prisma.service.findFirst({
-    where: {
-      id,
-      isDeleted: false,
-    },
-  });
+//   return successResponse("Service updated successfully", { service: updated });
+// }
 
-  if (!existing) {
-    return errorResponse(404, "Service not found", "NOT_FOUND");
-  }
+// export async function DELETE(
+//   req: NextRequest,
+//   { params }: { params: { id: string } }
+// ) {
+//   const authResult = await authenticateRequest(req, { requireAdmin: true });
 
-  if (parseResult.data.companyId) {
-    const company = await prisma.company.findFirst({
-      where: {
-        id: parseResult.data.companyId,
-        isDeleted: false,
-      },
-    });
+//   if ("error" in authResult) {
+//     return authResult.error;
+//   }
 
-    if (!company) {
-      return errorResponse(400, "Invalid companyId", "VALIDATION_ERROR");
-    }
-  }
+//   const id = Number(params.id);
 
-  const updated = await prisma.service.update({
-    where: { id },
-    data: parseResult.data,
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      price: true,
-      companyId: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+//   if (!Number.isInteger(id) || id <= 0) {
+//     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
+//   }
 
-  return successResponse("Service updated successfully", { service: updated });
-}
+//   const existing = await prisma.service.findFirst({
+//     where: {
+//       id,
+//       isDeleted: false,
+//     },
+//   });
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const authResult = await authenticateRequest(req, { requireAdmin: true });
+//   if (!existing) {
+//     return errorResponse(404, "Service not found", "NOT_FOUND");
+//   }
 
-  if ("error" in authResult) {
-    return authResult.error;
-  }
+//   await prisma.service.update({
+//     where: { id },
+//     data: {
+//       isDeleted: true,
+//     },
+//   });
 
-  const id = Number(params.id);
-
-  if (!Number.isInteger(id) || id <= 0) {
-    return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
-  }
-
-  const existing = await prisma.service.findFirst({
-    where: {
-      id,
-      isDeleted: false,
-    },
-  });
-
-  if (!existing) {
-    return errorResponse(404, "Service not found", "NOT_FOUND");
-  }
-
-  await prisma.service.update({
-    where: { id },
-    data: {
-      isDeleted: true,
-    },
-  });
-
-  return successResponse("Service deleted successfully");
-}
+//   return successResponse("Service deleted successfully");
+// }
