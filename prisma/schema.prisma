@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum EnumRole {
+  USER
+  ADMIN
+}
+
+enum EnumOrderStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  fullName  String
+  email     String    @unique
+  password  String
+  phone     String?
+  role      EnumRole  @default(USER)
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  orders    Order[]
+}
+
+model Company {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  address     String?
+  phone       String?
+  isDeleted   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  services    CompanyService[]
+  orders      Order[]
+}
+
+model Service {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  isDeleted   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  companies   CompanyService[]
+  orders      Order[]
+}
+
+model CompanyService {
+  id        Int     @id @default(autoincrement())
+  companyId Int
+  serviceId Int
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, serviceId])
+}
+
+model Order {
+  id        Int             @id @default(autoincrement())
+  userId    Int
+  companyId Int
+  serviceId Int
+  status    EnumOrderStatus @default(PENDING)
+  date      DateTime
+  time      String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user      User    @relation(fields: [userId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+}
