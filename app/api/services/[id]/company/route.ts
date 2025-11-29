@@ -3,14 +3,14 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse } from "@/lib/api-response";
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
+// interface RouteContext {
+//   params: {
+//     id: string;
+//   };
+// }
 
-export async function GET(_req: NextRequest, context: RouteContext) {
-  const id = Number(context.params.id);
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");

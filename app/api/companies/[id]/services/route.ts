@@ -4,14 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { getPaginationParams, buildPaginationMeta } from "@/lib/pagination";
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
+// interface RouteContext {
+//   params: {
+//     id: string;
+//   };
+// }
 
-export async function GET(req: NextRequest, context: RouteContext) {
-  const id = Number(context.params.id);
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid company id", "VALIDATION_ERROR");

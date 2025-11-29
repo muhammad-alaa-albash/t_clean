@@ -5,14 +5,14 @@ import { authenticateRequest } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { serviceUpdateSchema } from "@/lib/validation/services";
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
+// interface RouteContext {
+//   params: {
+//     id: string;
+//   };
+// }
 
-export async function GET(_req: NextRequest, context: RouteContext) {
-  const id = Number(context.params.id);
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
@@ -41,14 +41,14 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   return successResponse("Service fetched successfully", { service });
 }
 
-export async function PATCH(req: NextRequest, context: RouteContext) {
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const authResult = await authenticateRequest(req, { requireAdmin: true });
 
   if ("error" in authResult) {
     return authResult.error;
   }
 
-  const id = Number(context.params.id);
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");
@@ -107,14 +107,17 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   return successResponse("Service updated successfully", { service: updated });
 }
 
-export async function DELETE(req: NextRequest, context: RouteContext) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const authResult = await authenticateRequest(req, { requireAdmin: true });
 
   if ("error" in authResult) {
     return authResult.error;
   }
 
-  const id = Number(context.params.id);
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid service id", "VALIDATION_ERROR");

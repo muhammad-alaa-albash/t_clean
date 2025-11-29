@@ -5,20 +5,20 @@ import { authenticateRequest } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { userUpdateSchema } from "@/lib/validation/users";
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
+// interface RouteContext {
+//   params: {
+//     id: string;
+//   };
+// }
 
-export async function GET(_req: NextRequest, context: RouteContext) {
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const authResult = await authenticateRequest(_req, { requireAdmin: true });
 
   if ("error" in authResult) {
     return authResult.error;
   }
 
-  const id = Number(context.params.id);
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid user id", "VALIDATION_ERROR");
@@ -46,14 +46,14 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   return successResponse("User fetched successfully", { user });
 }
 
-export async function PATCH(req: NextRequest, context: RouteContext) {
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const authResult = await authenticateRequest(req, { requireAdmin: true });
 
   if ("error" in authResult) {
     return authResult.error;
   }
 
-  const id = Number(context.params.id);
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid user id", "VALIDATION_ERROR");
@@ -106,14 +106,17 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
 }
 
-export async function DELETE(req: NextRequest, context: RouteContext) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const authResult = await authenticateRequest(req, { requireAdmin: true });
 
   if ("error" in authResult) {
     return authResult.error;
   }
 
-  const id = Number(context.params.id);
+  const id = Number(params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return errorResponse(400, "Invalid user id", "VALIDATION_ERROR");
