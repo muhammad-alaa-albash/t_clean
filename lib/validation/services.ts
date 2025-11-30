@@ -3,7 +3,7 @@ import { z } from "zod";
 export const serviceCreateSchema = z.object({
   name: z.string().min(2).max(255),
   description: z.string().max(2000).optional(),
-  price: z.number().nonnegative().optional(),
+  price: z.number().nonnegative(),
   companyId: z.number().int().positive(),
 });
 

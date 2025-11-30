@@ -30,44 +30,37 @@ model User {
   updatedAt DateTime  @updatedAt
 
   orders    Order[]
+  companies Company[]
 }
 
 model Company {
-  id          Int              @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
   address     String?
   phone       String?
-  isDeleted   Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  ownerId     Int?
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  services    CompanyService[]
+  owner       User?    @relation(fields: [ownerId], references: [id])
+  services    Service[]
   orders      Order[]
 }
 
 model Service {
-  id          Int              @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
   price       Float
-  isDeleted   Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  companyId   Int
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  companies   CompanyService[]
+  company     Company  @relation(fields: [companyId], references: [id])
   orders      Order[]
-}
-
-model CompanyService {
-  id        Int     @id @default(autoincrement())
-  companyId Int
-  serviceId Int
-
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-
-  @@unique([companyId, serviceId])
 }
 
 model Order {

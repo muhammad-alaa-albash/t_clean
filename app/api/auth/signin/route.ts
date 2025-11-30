@@ -64,6 +64,11 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    return errorResponse(500, "Internal server error", "INTERNAL_SERVER_ERROR");
+    return errorResponse(
+      500,
+      "Internal server error",
+      "INTERNAL_SERVER_ERROR",
+      error
+    );
   }
 }

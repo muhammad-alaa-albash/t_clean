@@ -31,7 +31,8 @@ export function signAccessToken(user: {
 }
 
 export function verifyAccessToken(token: string): JwtUserPayload {
-  return jwt.verify(token, env.JWT_SECRET) as JwtUserPayload;
+  const decoded = jwt.verify(token, env.JWT_SECRET) as unknown;
+  return decoded as JwtUserPayload;
 }
 
 export async function hashPassword(plainPassword: string): Promise<string> {
