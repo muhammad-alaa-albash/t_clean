@@ -21,11 +21,20 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       isDeleted: false,
     },
     include: {
-      company: true,
+      companies: {
+        where: {
+          company: {
+            isDeleted: false,
+          },
+        },
+        include: {
+          company: true,
+        },
+      },
     },
   });
 
-  if (!service || !service.company || service.company.isDeleted) {
+  if (!service || !service.companies.length) {
     return errorResponse(
       404,
       "Company not found for this service",
@@ -33,13 +42,15 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     );
   }
 
+  const firstCompany = service.companies[0].company;
+
   const company = {
-    id: service.company.id,
-    name: service.company.name,
-    description: service.company.description,
-    ownerId: service.company.ownerId,
-    createdAt: service.company.createdAt,
-    updatedAt: service.company.updatedAt,
+    id: firstCompany.id,
+    name: firstCompany.name,
+    description: firstCompany.description,
+    ownerId: firstCompany.ownerId,
+    createdAt: firstCompany.createdAt,
+    updatedAt: firstCompany.updatedAt,
   };
 
   return successResponse("Service company fetched successfully", { company });

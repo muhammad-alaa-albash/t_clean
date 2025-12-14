@@ -137,13 +137,9 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
         isDeleted: true,
       },
     }),
-    prisma.service.updateMany({
+    prisma.companyService.deleteMany({
       where: {
         companyId: id,
-        isDeleted: false,
-      },
-      data: {
-        isDeleted: true,
       },
     }),
   ]);

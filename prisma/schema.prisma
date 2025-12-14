@@ -45,7 +45,7 @@ model Company {
   updatedAt   DateTime @updatedAt
 
   owner       User?    @relation(fields: [ownerId], references: [id])
-  services    Service[]
+  services    CompanyService[]
   orders      Order[]
 }
 
@@ -54,18 +54,27 @@ model Service {
   name        String
   description String?
   price       Float
-  companyId   Int
   isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  company     Company  @relation(fields: [companyId], references: [id])
+  companies   CompanyService[]
   orders      Order[]
+}
+
+model CompanyService {
+  companyId Int
+  serviceId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([companyId, serviceId])
 }
 
 model Order {
   id        Int             @id @default(autoincrement())
-  userId    Int
+  userId    Int 
   companyId Int
   serviceId Int
   status    EnumOrderStatus @default(PENDING)

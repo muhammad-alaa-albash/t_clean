@@ -33,9 +33,18 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       name: true,
       description: true,
       price: true,
-      companyId: true,
       createdAt: true,
       updatedAt: true,
+      companies: {
+        where: {
+          company: {
+            isDeleted: false,
+          },
+        },
+        select: {
+          companyId: true,
+        },
+      },
     },
   });
 
@@ -43,7 +52,19 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     return errorResponse(404, "Service not found", "NOT_FOUND");
   }
 
-  return successResponse("Service fetched successfully", { service });
+  const responseService = {
+    id: service.id,
+    name: service.name,
+    description: service.description,
+    price: service.price,
+    createdAt: service.createdAt,
+    updatedAt: service.updatedAt,
+    companyIds: service.companies.map((c) => c.companyId),
+  };
+
+  return successResponse("Service fetched successfully", {
+    service: responseService,
+  });
 }
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
@@ -82,20 +103,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   if (!existing) {
     return errorResponse(404, "Service not found", "NOT_FOUND");
   }
-
-  if (parseResult.data.companyId) {
-    const company = await prisma.company.findFirst({
-      where: {
-        id: parseResult.data.companyId,
-        isDeleted: false,
-      },
-    });
-
-    if (!company) {
-      return errorResponse(400, "Invalid companyId", "VALIDATION_ERROR");
-    }
-  }
-
   const updated = await prisma.service.update({
     where: { id },
     data: parseResult.data,
@@ -104,13 +111,34 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       name: true,
       description: true,
       price: true,
-      companyId: true,
       createdAt: true,
       updatedAt: true,
+      companies: {
+        where: {
+          company: {
+            isDeleted: false,
+          },
+        },
+        select: {
+          companyId: true,
+        },
+      },
     },
   });
 
-  return successResponse("Service updated successfully", { service: updated });
+  const responseService = {
+    id: updated.id,
+    name: updated.name,
+    description: updated.description,
+    price: updated.price,
+    createdAt: updated.createdAt,
+    updatedAt: updated.updatedAt,
+    companyIds: updated.companies.map((c) => c.companyId),
+  };
+
+  return successResponse("Service updated successfully", {
+    service: responseService,
+  });
 }
 
 export async function DELETE(req: NextRequest, context: RouteContext) {

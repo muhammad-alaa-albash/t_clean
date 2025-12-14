@@ -16,11 +16,19 @@ export async function GET(req: NextRequest) {
 
   const where: Prisma.ServiceWhereInput = {
     isDeleted: false,
+    ...(companyId && Number.isInteger(companyId) && companyId > 0
+      ? {
+          companies: {
+            some: {
+              companyId,
+              company: {
+                isDeleted: false,
+              },
+            },
+          },
+        }
+      : {}),
   };
-
-  if (companyId && Number.isInteger(companyId) && companyId > 0) {
-    where.companyId = companyId;
-  }
 
   const [services, total] = await Promise.all([
     prisma.service.findMany({
@@ -30,9 +38,18 @@ export async function GET(req: NextRequest) {
         name: true,
         description: true,
         price: true,
-        companyId: true,
         createdAt: true,
         updatedAt: true,
+        companies: {
+          where: {
+            company: {
+              isDeleted: false,
+            },
+          },
+          select: {
+            companyId: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -43,8 +60,18 @@ export async function GET(req: NextRequest) {
     prisma.service.count({ where }),
   ]);
 
+  const items = services.map((service) => ({
+    id: service.id,
+    name: service.name,
+    description: service.description,
+    price: service.price,
+    createdAt: service.createdAt,
+    updatedAt: service.updatedAt,
+    companyIds: service.companies.map((c) => c.companyId),
+  }));
+
   return successResponse("Services fetched successfully", {
-    items: services,
+    items,
     meta: buildPaginationMeta(total, page, limit),
   });
 }
@@ -68,31 +95,70 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const data = parseResult.data;
+  const { companyIds, ...serviceData } = parseResult.data;
+  const uniqueCompanyIds = Array.from(new Set(companyIds));
 
-  const company = await prisma.company.findFirst({
+  const companies = await prisma.company.findMany({
     where: {
-      id: data.companyId,
+      id: {
+        in: uniqueCompanyIds,
+      },
       isDeleted: false,
+    },
+    select: {
+      id: true,
     },
   });
 
-  if (!company) {
-    return errorResponse(400, "Invalid companyId", "VALIDATION_ERROR");
+  if (companies.length !== uniqueCompanyIds.length) {
+    const validIds = new Set(companies.map((c) => c.id));
+    const invalidIds = uniqueCompanyIds.filter((id) => !validIds.has(id));
+
+    return errorResponse(400, "Invalid companyIds", "VALIDATION_ERROR", {
+      invalidCompanyIds: invalidIds,
+    });
   }
 
   const service = await prisma.service.create({
-    data,
+    data: {
+      ...serviceData,
+      companies: {
+        createMany: {
+          data: uniqueCompanyIds.map((companyId) => ({ companyId })),
+        },
+      },
+    },
     select: {
       id: true,
       name: true,
       description: true,
       price: true,
-      companyId: true,
       createdAt: true,
       updatedAt: true,
+      companies: {
+        where: {
+          company: {
+            isDeleted: false,
+          },
+        },
+        select: {
+          companyId: true,
+        },
+      },
     },
   });
 
-  return successResponse("Service created successfully", { service });
+  const responseService = {
+    id: service.id,
+    name: service.name,
+    description: service.description,
+    price: service.price,
+    createdAt: service.createdAt,
+    updatedAt: service.updatedAt,
+    companyIds: service.companies.map((c) => c.companyId),
+  };
+
+  return successResponse("Service created successfully", {
+    service: responseService,
+  });
 }

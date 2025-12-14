@@ -30,20 +30,38 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
   const { page, limit } = getPaginationParams(req);
 
+  const where = {
+    isDeleted: false,
+    companies: {
+      some: {
+        companyId: id,
+        company: {
+          isDeleted: false,
+        },
+      },
+    },
+  };
+
   const [services, total] = await Promise.all([
     prisma.service.findMany({
-      where: {
-        companyId: id,
-        isDeleted: false,
-      },
+      where,
       select: {
         id: true,
         name: true,
         description: true,
         price: true,
-        companyId: true,
         createdAt: true,
         updatedAt: true,
+        companies: {
+          where: {
+            company: {
+              isDeleted: false,
+            },
+          },
+          select: {
+            companyId: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -51,16 +69,21 @@ export async function GET(req: NextRequest, context: RouteContext) {
       skip: (page - 1) * limit,
       take: limit,
     }),
-    prisma.service.count({
-      where: {
-        companyId: id,
-        isDeleted: false,
-      },
-    }),
+    prisma.service.count({ where }),
   ]);
 
+  const items = services.map((service) => ({
+    id: service.id,
+    name: service.name,
+    description: service.description,
+    price: service.price,
+    createdAt: service.createdAt,
+    updatedAt: service.updatedAt,
+    companyIds: service.companies.map((c) => c.companyId),
+  }));
+
   return successResponse("Company services fetched successfully", {
-    items: services,
+    items,
     meta: buildPaginationMeta(total, page, limit),
   });
 }
